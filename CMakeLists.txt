@@ -29,7 +29,7 @@ if (NOT EXISTS "${PROJECT_SOURCE_DIR}/extern/glfw/CMakeLists.txt")
     message(FATAL_ERROR "The submodules were not downloaded! GIT_SUBMODULE was turned off or failed. Please update submodules and try again.")
 endif()
 
-add_executable(BlockGame src/main.cpp)
+add_executable(BlockGame src/main.cpp src/ShaderProgram.cpp src/ShaderProgram.h src/Window.cpp src/Window.h)
 
 add_subdirectory(extern/glad)
 add_subdirectory(extern/glfw)
