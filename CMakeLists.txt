@@ -6,6 +6,7 @@ project(BlockGame
     LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 17)
+set(gen_dir "${PROJECT_BINARY_DIR}/generated")
 
 # thank god for https://cliutils.gitlab.io/modern-cmake/chapters/projects/submodule.html
 # what the hell even is cmake??
@@ -29,7 +30,22 @@ if (NOT EXISTS "${PROJECT_SOURCE_DIR}/extern/glfw/CMakeLists.txt")
     message(FATAL_ERROR "The submodules were not downloaded! GIT_SUBMODULE was turned off or failed. Please update submodules and try again.")
 endif()
 
-add_executable(BlockGame src/main.cpp src/ShaderProgram.cpp src/ShaderProgram.h src/Window.cpp src/Window.h)
+# Generate a .cpp file to hold shaders
+find_package(PythonInterp 3.2 REQUIRED)
+add_custom_command(
+    PRE_BUILD
+    OUTPUT "${gen_dir}/ShaderSources.cpp"
+    COMMAND "${PYTHON_EXECUTABLE}"
+        "${CMAKE_CURRENT_LIST_DIR}/GenerateShaders.py"
+        "${CMAKE_CURRENT_LIST_DIR}/shaders/"
+        "${gen_dir}"
+    DEPENDS "${CMAKE_CURRENT_LIST_DIR}/GenerateShaders.py"
+        "${CMAKE_CURRENT_LIST_DIR}/shaders/"
+)
+
+add_executable(BlockGame
+    src/main.cpp src/ShaderProgram.cpp src/ShaderProgram.h src/Window.cpp src/Window.h
+    ${gen_dir}/ShaderSources.cpp)
 
 add_subdirectory(extern/glad)
 add_subdirectory(extern/glfw)

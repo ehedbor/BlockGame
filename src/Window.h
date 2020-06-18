@@ -13,6 +13,10 @@ private:
 public:
     Window(int glfwWindow, int height, const char *title);
     ~Window();
+    Window(const Window &other) = delete;
+    Window& operator=(const Window &other) = delete;
+    Window(Window&& other) = default;
+    Window& operator=(Window&&) = default;
 
     void update();
 

@@ -4,12 +4,18 @@
 #include <stdexcept>
 #include <sstream>
 
-ShaderProgram::~ShaderProgram() {
-    if (_programId != 0) {
-        glDeleteProgram(_programId);
-    }
+ShaderProgram::ShaderProgram(const char *const *vertexShader, const char *const *fragmentShader) {
+    createVertexShader(vertexShader);
+    createFragmentShader(fragmentShader);
+    linkProgram();
 }
 
+ShaderProgram::~ShaderProgram() {
+    // checking for _programId == 0 (etc) is useless as glDeleteProgram/Shader does it already
+    glDeleteShader(_vertexShaderId);
+    glDeleteShader(_fragmentShaderId);
+    glDeleteProgram(_programId);
+}
 
 void ShaderProgram::createVertexShader(const char *const *source) {
     _vertexShaderId = createShader(source, ShaderType::VERTEX);
@@ -29,17 +35,13 @@ void ShaderProgram::linkProgram() {
     glAttachShader(_programId, _fragmentShaderId);
     glLinkProgram(_programId);
 
-    // mark the shaders for deletion once the shader program is deleted
-    glDeleteShader(_vertexShaderId);
-    glDeleteShader(_fragmentShaderId);
-
     int success;
     char infoLog[1024];
     glGetProgramiv(_programId, GL_LINK_STATUS, &success);
     if (!success) {
         glGetProgramInfoLog(_programId, sizeof(infoLog), nullptr, infoLog);
         std::stringstream errMsg;
-        errMsg << "Could not link shader program:\n" << infoLog;
+        errMsg << "Could not link shader program:\n    " << infoLog;
         throw std::runtime_error(errMsg.str());
     }
 
@@ -48,16 +50,16 @@ void ShaderProgram::linkProgram() {
     if (!success) {
         glGetProgramInfoLog(_programId, sizeof(infoLog), nullptr, infoLog);
         std::stringstream errMsg;
-        errMsg << "Error while validating shader code:\n" << infoLog;
+        errMsg << "Error while validating shader code:\n    " << infoLog;
         throw std::runtime_error(errMsg.str());
     }
 }
 
-void ShaderProgram::bind() {
+void ShaderProgram::bind() const {
     glUseProgram(_programId);
 }
 
-void ShaderProgram::unbind() {
+void ShaderProgram::unbind() const {
     glUseProgram(0);
 }
 
@@ -71,12 +73,13 @@ unsigned int ShaderProgram::createShader(const char *const *source, ShaderType t
     char infoLog[1024];
     glGetShaderiv(shaderId, GL_COMPILE_STATUS, &success);
     if (!success) {
+        glGetShaderInfoLog(shaderId, sizeof(infoLog), nullptr, infoLog);
+
         std::stringstream errMsg;
-        errMsg << "Could not compile " << (type == ShaderType::VERTEX ? "vertex" : "fragment") << " shader:\n"
-            << infoLog;
+        errMsg << "Could not compile " << (type == ShaderType::VERTEX ? "vertex" : "fragment")
+            << " shader:\n    " << infoLog;
         throw std::runtime_error(errMsg.str());
     }
 
     return shaderId;
 }
-

@@ -4,30 +4,10 @@
 #include "ShaderProgram.h"
 #include "Window.h"
 
-static constexpr float vertices[] = {
-    -0.5f, -0.5f, 0.0f,
-    0.5f, -0.5f, 0.0f,
-    0.0f, 0.5f, 0.0f
-};
-
-static constexpr const char *vertexShaderSource = R"(
-    #version 330
-    layout (location=0) in vec3 position;
-
-    void main() {
-        gl_Position = vec4(position, 1.0);
-    }
-)";
-
-static constexpr const char *fragmentShaderSource = R"(
-    #version 330
-    out vec4 fragColor;
-
-    void main() {
-        fragColor = vec4(1.0f, 0.5f, 0.2f, 1.0f);
-    }
-)";
-
+namespace Shaders {
+    extern const char *vertex;
+    extern const char *fragment;
+}
 
 int main() {
     // destroy all resources with RAII before terminating GLFW
@@ -35,17 +15,26 @@ int main() {
         Window window(640, 480, "Hello World!");
         window.setClearColor(255 / 255.0, 192 / 255.0, 203 / 255.0, 0);
 
-        ShaderProgram shaderProgram{};
-        shaderProgram.createVertexShader(&vertexShaderSource);
-        shaderProgram.createFragmentShader(&fragmentShaderSource);
-        shaderProgram.linkProgram();
+        ShaderProgram shaderProgram{&Shaders::vertex, &Shaders::fragment};
+
+        constexpr float vertices[] = {
+             0.5f,  0.5f, 0.0f, // top right
+             0.5f, -0.5f, 0.0f, // bottom right
+            -0.5f, -0.5f, 0.0f, // bottom left
+            -0.5f,  0.5f, 0.0f, // top left
+        };
+
+        constexpr unsigned int indices[] = {
+            0, 1, 3, // first triangle
+            1, 2, 3, // second triangle
+        };
 
         // create the VAO and bind it
         unsigned int vaoId;
         glGenVertexArrays(1, &vaoId);
         glBindVertexArray(vaoId);
 
-        // create the index vbo
+        // create the vbo
         unsigned int vboId;
         glGenBuffers(1, &vboId);
         // copy the vertices into the vertex buffer
@@ -54,6 +43,12 @@ int main() {
         // define the structure of the VBO data in the VAO and enable it, setting it to index 0
         glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), nullptr);
         glEnableVertexAttribArray(0);
+
+        // create the ebo
+        unsigned int eboId;
+        glGenBuffers(1, &eboId);
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, eboId);
+        glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
 
 
         while (!window.shouldClose()) {
@@ -67,7 +62,7 @@ int main() {
             // draw the triangle
             shaderProgram.bind();
             glBindVertexArray(vaoId);
-            glDrawArrays(GL_TRIANGLES, 0, 3);
+            glDrawElements(GL_TRIANGLES, sizeof(indices), GL_UNSIGNED_INT, nullptr);
 
             // restore state
             glBindVertexArray(0);

@@ -153,3 +153,4 @@ _deps
 
 ### Auto-generated project dependencies
 extern/glfw/
+venv/

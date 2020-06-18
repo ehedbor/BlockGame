@@ -2,7 +2,7 @@
 #include <stdexcept>
 #include <iostream>
 
-Window::Window(int width, int height, const char *title) : _width(width), _height(height) {
+Window::Window(int width, int height, const char *title) : _width(width), _height(height), _resized(false) {
     glfwSetErrorCallback([](auto error, auto desc) {
         std::cerr << "GLFW Error #" << error << ": " << desc << std::endl;
     });
@@ -56,15 +56,22 @@ Window::Window(int width, int height, const char *title) : _width(width), _heigh
     glClearColor(0.3, 0.3, 0.3, 1.0);
 
     // Enable various features
-    //glEnable(GL_DEPTH_TEST);
-    // use to enable alpha
-    //glEnable(GL_BLEND);
-    //glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+#ifdef USE_DEPTH_TEST
+    glEnable(GL_DEPTH_TEST);
+#endif
+#ifdef USE_TRANSPARENY
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+#endif
+#ifdef USE_FACE_CULLING
     // Enable face culling (only render visible faces)
-    //glEnable(GL_CULL_FACE);
-    //glCullFace(GL_BACK);
+    glEnable(GL_CULL_FACE);
+    glCullFace(GL_BACK);
+#endif
+#ifdef USE_POLYGON_MODE
     // Enable polygon mode -- wireframe
-    //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE)
+    glPolygonMode(GL_FRONT_AND_BACK, GL_LINE)
+#endif
 }
 
 Window::~Window() {
