@@ -16,8 +16,11 @@ public:
     ShaderProgram(ShaderProgram &&other) noexcept = default;
     ShaderProgram& operator=(ShaderProgram &&other) noexcept = default;
 
-    void bind() const;
-    void unbind() const;
+    void use() const;
+
+    void setBool(const std::string &name, bool value) const;
+    void setInt(const std::string &name, int value) const;
+    void setFloat(const std::string &name, float value) const;
 
 private:
     enum class ShaderType {
@@ -32,6 +35,9 @@ private:
 
     [[nodiscard]]
     static unsigned int createShader(const char *const *source, ShaderType type);
+
+    [[nodiscard]]
+    int getUniformLocation(const std::string &name) const;
 };
 
 

@@ -1,6 +1,7 @@
 #include <iostream>
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
+#include <cmath>
 #include "ShaderProgram.h"
 #include "Window.h"
 
@@ -18,15 +19,10 @@ int main() {
         ShaderProgram shaderProgram{&Shaders::vertex, &Shaders::fragment};
 
         constexpr float vertices[] = {
-             0.5f,  0.5f, 0.0f, // top right
-             0.5f, -0.5f, 0.0f, // bottom right
-            -0.5f, -0.5f, 0.0f, // bottom left
-            -0.5f,  0.5f, 0.0f, // top left
-        };
-
-        constexpr unsigned int indices[] = {
-            0, 1, 3, // first triangle
-            1, 2, 3, // second triangle
+            // positions        // colors
+             0.5f, -0.5f, 0.0f, 1.0f, 0.0f, 0.0f, // bottom right
+            -0.5f, -0.5f, 0.0f, 0.0f, 1.0f, 0.0f, // bottom left
+             0.0f,  0.5f, 0.0f, 0.0f, 0.0f, 1.0f, // top
         };
 
         // create the VAO and bind it
@@ -40,16 +36,13 @@ int main() {
         // copy the vertices into the vertex buffer
         glBindBuffer(GL_ARRAY_BUFFER, vboId);
         glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
-        // define the structure of the VBO data in the VAO and enable it, setting it to index 0
-        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), nullptr);
+        // define the structure of the VBO data in the VAO
+        // position attribute
+        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), reinterpret_cast<void *>(0));
         glEnableVertexAttribArray(0);
-
-        // create the ebo
-        unsigned int eboId;
-        glGenBuffers(1, &eboId);
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, eboId);
-        glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
-
+        // color attribute
+        glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), reinterpret_cast<void *>(3 * sizeof(float)));
+        glEnableVertexAttribArray(1);
 
         while (!window.shouldClose()) {
             // update the screen and clear for the next frame
@@ -59,14 +52,13 @@ int main() {
             }
             window.clear();
 
-            // draw the triangle
-            shaderProgram.bind();
-            glBindVertexArray(vaoId);
-            glDrawElements(GL_TRIANGLES, sizeof(indices), GL_UNSIGNED_INT, nullptr);
+            // activate the shaders
+            shaderProgram.use();
 
-            // restore state
-            glBindVertexArray(0);
-            shaderProgram.unbind();
+
+            // draw the triangle
+            glBindVertexArray(vaoId);
+            glDrawArrays(GL_TRIANGLES, 0, 3);
 
             // draw the screen and process events
             window.update();

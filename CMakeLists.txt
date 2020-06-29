@@ -40,7 +40,8 @@ add_custom_command(
         "${CMAKE_CURRENT_LIST_DIR}/shaders/"
         "${gen_dir}"
     DEPENDS "${CMAKE_CURRENT_LIST_DIR}/GenerateShaders.py"
-        "${CMAKE_CURRENT_LIST_DIR}/shaders/"
+        "shaders/vertex.vert" "shaders/fragment.frag"
+    COMMENT "Generating shader source file"
 )
 
 add_executable(BlockGame

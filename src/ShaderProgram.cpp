@@ -17,6 +17,16 @@ ShaderProgram::~ShaderProgram() {
     glDeleteProgram(_programId);
 }
 
+//void ShaderProgram::setUniform(const char *name, float r, float g, float b, float a) {
+//    auto location = glGetUniformLocation(_programId, name);
+//    if (location < 0) {
+//        std::stringstream message;
+//        message << "Could not find uniform '" << name << "'";
+//        throw std::runtime_error(message.str());
+//    }
+//    glUniform4f(location, r, g, b, a);
+//}
+
 void ShaderProgram::createVertexShader(const char *const *source) {
     _vertexShaderId = createShader(source, ShaderType::VERTEX);
 }
@@ -55,22 +65,14 @@ void ShaderProgram::linkProgram() {
     }
 }
 
-void ShaderProgram::bind() const {
-    glUseProgram(_programId);
-}
-
-void ShaderProgram::unbind() const {
-    glUseProgram(0);
-}
-
 unsigned int ShaderProgram::createShader(const char *const *source, ShaderType type) {
-    auto openglShaderType = type == ShaderType::VERTEX ? GL_VERTEX_SHADER : GL_FRAGMENT_SHADER;
+    auto openglShaderType = (type == ShaderType::VERTEX) ? GL_VERTEX_SHADER : GL_FRAGMENT_SHADER;
     unsigned int shaderId = glCreateShader(openglShaderType);
     glShaderSource(shaderId, 1, source, nullptr);
     glCompileShader(shaderId);
 
     int success;
-    char infoLog[1024];
+    char infoLog[512];
     glGetShaderiv(shaderId, GL_COMPILE_STATUS, &success);
     if (!success) {
         glGetShaderInfoLog(shaderId, sizeof(infoLog), nullptr, infoLog);
@@ -82,4 +84,30 @@ unsigned int ShaderProgram::createShader(const char *const *source, ShaderType t
     }
 
     return shaderId;
+}
+
+void ShaderProgram::use() const {
+    glUseProgram(_programId);
+}
+
+void ShaderProgram::setBool(const std::string &name, bool value) const {
+    glUniform1i(getUniformLocation(name), static_cast<int>(value));
+}
+
+void ShaderProgram::setInt(const std::string &name, int value) const {
+    glUniform1i(getUniformLocation(name), value);
+}
+
+void ShaderProgram::setFloat(const std::string &name, float value) const {
+    glUniform1f(getUniformLocation(name), value);
+}
+
+int ShaderProgram::getUniformLocation(const std::string &name) const {
+    auto location = glGetUniformLocation(_programId, name.c_str());
+    if (location < 0) {
+        std::stringstream message;
+        message << "Could not find uniform '" << name << "'";
+        throw std::runtime_error(message.str());
+    }
+    return location;
 }
