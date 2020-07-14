@@ -2,7 +2,8 @@
 #include <stdexcept>
 #include <iostream>
 
-Window::Window(int width, int height, const char *title) : _width(width), _height(height), _resized(false) {
+Window::Window(int width, int height, const char *title) :
+    _width(width), _height(height), _resized(false), _input(*this) {
     glfwSetErrorCallback([](auto error, auto desc) {
         std::cerr << "GLFW Error #" << error << ": " << desc << std::endl;
     });
@@ -38,16 +39,6 @@ Window::Window(int width, int height, const char *title) : _width(width), _heigh
         window->_height = height;
     });
 
-    // Center the window
-    auto vidmode = glfwGetVideoMode(glfwGetPrimaryMonitor());
-    if (!vidmode) {
-        throw std::runtime_error("Failed to get video mode.");
-    }
-
-    glfwSetWindowPos(_window,
-        (vidmode->width - width) / 2,
-        (vidmode->height - height) / 2);
-
     // hide and capture the mouse
     glfwSetInputMode(_window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
@@ -78,16 +69,20 @@ void Window::update() {
     glfwSwapBuffers(_window);
 }
 
+Input &Window::input() {
+    return _input;
+}
+
+const Input &Window::input() const {
+    return _input;
+}
+
 bool Window::shouldClose() const {
     return glfwWindowShouldClose(_window);
 }
 
 void Window::setShouldClose(bool value) {
     glfwSetWindowShouldClose(_window, value);
-}
-
-bool Window::isKeyPressed(int key) const {
-    return glfwGetKey(_window, key) == GLFW_PRESS;
 }
 
 int Window::width() const {
@@ -106,4 +101,10 @@ void Window::setResized(bool value) {
     _resized = value;
 }
 
+GLFWwindow *Window::rawWindow() {
+    return _window;
+}
 
+const GLFWwindow *Window::rawWindow() const {
+    return _window;
+}

@@ -3,12 +3,15 @@
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 
+#include "Input.h"
+
 class Window {
 private:
     GLFWwindow *_window;
     int _width;
     int _height;
     bool _resized;
+    Input _input;
 
 public:
     Window(int glfwWindow, int height, const char *title);
@@ -20,17 +23,20 @@ public:
 
     void update();
 
-    [[nodiscard]] bool isKeyPressed(int keyCode) const;
+    Input &input();
+    const Input &input() const;
 
-    [[nodiscard]] bool shouldClose() const;
+    bool shouldClose() const;
     void setShouldClose(bool value);
 
-    [[nodiscard]] int width() const;
-    [[nodiscard]] int height() const;
+    int width() const;
+    int height() const;
 
-    [[nodiscard]] bool isResized() const;
+    bool isResized() const;
     void setResized(bool value);
 
+    GLFWwindow *rawWindow();
+    const GLFWwindow *rawWindow() const;
 };
 
 

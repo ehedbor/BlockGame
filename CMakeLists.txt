@@ -51,8 +51,8 @@ add_custom_command(
 )
 
 add_executable(BlockGame
-    src/main.cpp src/ShaderProgram.cpp src/ShaderProgram.h src/Window.cpp src/Window.h
-    ${gen_dir}/ShaderSources.cpp)
+    src/Shader.cpp src/Shader.h src/Window.cpp src/Window.h
+    ${gen_dir}/ShaderSources.cpp src/Game.cpp src/Game.h src/Texture.cpp src/Texture.h src/main.cpp src/Input.cpp src/Input.h src/Camera.cpp src/Camera.h src/ResourceManager.cpp src/ResourceManager.h)
 
 add_subdirectory(extern/glad)
 add_subdirectory(extern/glfw)
