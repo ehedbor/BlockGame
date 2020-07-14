@@ -14,6 +14,11 @@ Window::Window(int width, int height, const char *title) : _width(width), _heigh
     // Specify the desired version (3.3)
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+
+#ifdef __APPLE__
+    glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
+#endif
 
     // Create the window
     _window = glfwCreateWindow(width, height, title, nullptr, nullptr);
@@ -52,26 +57,19 @@ Window::Window(int width, int height, const char *title) : _width(width), _heigh
     // Setup OpenGL
     glfwMakeContextCurrent(_window);
     gladLoadGLLoader(reinterpret_cast<GLADloadproc>(glfwGetProcAddress));
-    glfwSwapInterval(1); // enable vsyng
+    glfwSwapInterval(1); // enable vsync
     glClearColor(0.3, 0.3, 0.3, 1.0);
 
-    // Enable various features
-#ifdef USE_DEPTH_TEST
+    // configure global opengl state
     glEnable(GL_DEPTH_TEST);
-#endif
-#ifdef USE_TRANSPARENY
-    glEnable(GL_BLEND);
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-#endif
-#ifdef USE_FACE_CULLING
+    //transparency
+    //glEnable(GL_BLEND);
+    //glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     // Enable face culling (only render visible faces)
-    glEnable(GL_CULL_FACE);
-    glCullFace(GL_BACK);
-#endif
-#ifdef USE_POLYGON_MODE
+    //glEnable(GL_CULL_FACE);
+    //glCullFace(GL_BACK);
     // Enable polygon mode -- wireframe
-    glPolygonMode(GL_FRONT_AND_BACK, GL_LINE)
-#endif
+    //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 }
 
 Window::~Window() {
@@ -92,7 +90,7 @@ void Window::setClearColor(float r, float g, float b, float a) {
 }
 
 void Window::clear() {
-    glClear(GL_COLOR_BUFFER_BIT);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 }
 
 int Window::width() const {

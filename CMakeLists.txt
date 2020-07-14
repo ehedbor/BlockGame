@@ -60,5 +60,5 @@ add_subdirectory(extern/stb)
 add_subdirectory(extern/glm)
 target_link_libraries(BlockGame glad glfw stb glm)
 
-target_compile_options(BlockGame PRIVATE -Wall -Wextra -Werror -Wno-unused-parameter)
+target_compile_options(BlockGame PRIVATE -Wall -Wextra -Werror -Wno-unused-parameter -Wno-unused-but-set-variable)
 target_link_options(BlockGame PRIVATE -lstdc++fs)
