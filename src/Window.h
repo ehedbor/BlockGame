@@ -20,11 +20,10 @@ public:
 
     void update();
 
-    void setClearColor(float r, float g, float b, float a);
-
-    void clear();
+    [[nodiscard]] bool isKeyPressed(int keyCode) const;
 
     [[nodiscard]] bool shouldClose() const;
+    void setShouldClose(bool value);
 
     [[nodiscard]] int width() const;
     [[nodiscard]] int height() const;

@@ -38,12 +38,6 @@ Window::Window(int width, int height, const char *title) : _width(width), _heigh
         window->_height = height;
     });
 
-    glfwSetKeyCallback(_window, [](auto window, int key, int scancode, int action, int mods) {
-        if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS) {
-            glfwSetWindowShouldClose(window, GLFW_TRUE);
-        }
-    });
-
     // Center the window
     auto vidmode = glfwGetVideoMode(glfwGetPrimaryMonitor());
     if (!vidmode) {
@@ -53,6 +47,9 @@ Window::Window(int width, int height, const char *title) : _width(width), _heigh
     glfwSetWindowPos(_window,
         (vidmode->width - width) / 2,
         (vidmode->height - height) / 2);
+
+    // hide and capture the mouse
+    glfwSetInputMode(_window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
     // Setup OpenGL
     glfwMakeContextCurrent(_window);
@@ -85,12 +82,12 @@ bool Window::shouldClose() const {
     return glfwWindowShouldClose(_window);
 }
 
-void Window::setClearColor(float r, float g, float b, float a) {
-    glClearColor(r, g, b, a);
+void Window::setShouldClose(bool value) {
+    glfwSetWindowShouldClose(_window, value);
 }
 
-void Window::clear() {
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+bool Window::isKeyPressed(int key) const {
+    return glfwGetKey(_window, key) == GLFW_PRESS;
 }
 
 int Window::width() const {
@@ -108,6 +105,5 @@ bool Window::isResized() const {
 void Window::setResized(bool value) {
     _resized = value;
 }
-
 
 
