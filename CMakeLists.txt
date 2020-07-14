@@ -8,6 +8,12 @@ project(BlockGame
 set(CMAKE_CXX_STANDARD 17)
 set(gen_dir "${PROJECT_BINARY_DIR}/generated")
 
+# add compiler flags
+
+#SET(MINGW_COMPILE_FLAGS "")
+#SET(MINGW_LINKER_FLAGS "-lstdc++fs")
+
+
 # thank god for https://cliutils.gitlab.io/modern-cmake/chapters/projects/submodule.html
 # what the hell even is cmake??
 find_package(Git QUIET)
@@ -50,4 +56,9 @@ add_executable(BlockGame
 
 add_subdirectory(extern/glad)
 add_subdirectory(extern/glfw)
-target_link_libraries(BlockGame glad glfw)
+add_subdirectory(extern/stb)
+add_subdirectory(extern/glm)
+target_link_libraries(BlockGame glad glfw stb glm)
+
+target_compile_options(BlockGame PRIVATE -Wall -Wextra -Werror -Wno-unused-parameter)
+target_link_options(BlockGame PRIVATE -lstdc++fs)
