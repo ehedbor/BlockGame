@@ -1,8 +1,11 @@
 #include "ShaderProgram.h"
-#include <glad/glad.h>
-#include <GLFW/glfw3.h>
 #include <stdexcept>
 #include <sstream>
+#include <glad/glad.h>
+#include <GLFW/glfw3.h>
+#include <glm/glm.hpp>
+#include <glm/gtc/type_ptr.hpp>
+
 
 ShaderProgram::ShaderProgram(const char *const *vertexShader, const char *const *fragmentShader) {
     createVertexShader(vertexShader);
@@ -100,6 +103,11 @@ void ShaderProgram::setInt(const std::string &name, int value) const {
 
 void ShaderProgram::setFloat(const std::string &name, float value) const {
     glUniform1f(getUniformLocation(name), value);
+}
+
+void ShaderProgram::setMat4(const std::string &name, const glm::mat4 &value) const {
+    auto location = getUniformLocation(name);
+    glUniformMatrix4fv(location, 1, GL_FALSE, glm::value_ptr(value));
 }
 
 int ShaderProgram::getUniformLocation(const std::string &name) const {

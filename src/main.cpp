@@ -1,3 +1,5 @@
+#include <iostream>
+#include <sstream>
 #include <stdexcept>
 
 #include <glad/glad.h>
@@ -7,6 +9,8 @@
 
 #include "ShaderProgram.h"
 #include "Window.h"
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
 
 namespace Shaders {
     extern const char *vertex;
@@ -26,6 +30,32 @@ constexpr unsigned int indices[] = {
     1, 2, 3, // second triangle
 };
 
+unsigned int loadTexture(const std::string &fileName, bool hasAlpha, int desired_channels = 0) {
+    unsigned int textureId;
+    glGenTextures(1, &textureId);
+    glBindTexture(GL_TEXTURE_2D, textureId);
+    // set the texture wrapping/filtering options (on the current texture)
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    // load and generate the texture
+    int width, height, channels;
+    auto data = stbi_load(fileName.c_str(), &width, &height, &channels, desired_channels);
+    if (!data) {
+        std::stringstream errmsg;
+        errmsg << "Could not load texture at '" << fileName << "'.";
+        throw std::runtime_error(errmsg.str());
+    }
+
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, hasAlpha ? GL_RGBA : GL_RGB, GL_UNSIGNED_BYTE, data);
+    glGenerateMipmap(GL_TEXTURE_2D);
+
+    stbi_image_free(data);
+
+    return textureId;
+}
+
 int main() {
     // destroy all resources with RAII before terminating GLFW
     {
@@ -34,49 +64,9 @@ int main() {
 
         ShaderProgram shaderProgram{&Shaders::vertex, &Shaders::fragment};
 
-        // create a texture
         stbi_set_flip_vertically_on_load(true);
-
-        unsigned int texture1Id;
-        glGenTextures(1, &texture1Id);
-        glBindTexture(GL_TEXTURE_2D, texture1Id);
-        // set the texture wrapping.filerting options (on the current texture)
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-        // load and generate the texture
-        int width, height, channels;
-        auto data = stbi_load("resources/textures/container.jpg", &width, &height, &channels, 0);
-        if (!data) {
-            throw std::runtime_error("Could not load texture 'resources/textures/container.jpg'.");
-        }
-
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
-        glGenerateMipmap(GL_TEXTURE_2D);
-
-        stbi_image_free(data);
-
-        // create another texture
-        unsigned int texture2Id;
-        glGenTextures(1, &texture2Id);
-        glBindTexture(GL_TEXTURE_2D, texture2Id);
-
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
-        data = stbi_load("resources/textures/awesomeface.png", &width, &height, &channels, 0);
-        if (!data) {
-            throw std::runtime_error("Could not load texture 'resources/textures/awesomeface.png'.");
-        }
-
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
-        glGenerateMipmap(GL_TEXTURE_2D);
-
-        stbi_image_free(data);
-
+        auto texture1Id = loadTexture("resources/textures/container.jpg", false);
+        auto texture2Id = loadTexture("resources/textures/awesomeface.png", true);
 
         // create the VAO and bind it
         unsigned int vaoId;
@@ -121,6 +111,10 @@ int main() {
             }
             window.clear();
 
+            glm::mat4 trans{1.0f};
+            trans = glm::translate(trans, glm::vec3(0.5f, -0.5f, 0.0f));
+            trans = glm::rotate(trans, static_cast<float>(glfwGetTime()), glm::vec3(0.0f, 0.0f, 1.0f));
+
             // draw the triangle
             glActiveTexture(GL_TEXTURE0); // activate the texture unit before binding texture
             glBindTexture(GL_TEXTURE_2D, texture1Id);
@@ -128,6 +122,14 @@ int main() {
             glBindTexture(GL_TEXTURE_2D, texture2Id);
 
             glBindVertexArray(vaoId);
+            shaderProgram.setMat4("transform", trans);
+            glDrawElements(GL_TRIANGLES, sizeof(indices), GL_UNSIGNED_INT, nullptr);
+
+            trans = glm::mat4(1.0f);
+            trans = glm::translate(trans, glm::vec3(-0.5, 0.5f, 0.0f));
+            auto scale = glm::abs(glm::sin(static_cast<float>(glfwGetTime())));
+            trans = glm::scale(trans, glm::vec3(scale, scale, scale));
+            shaderProgram.setMat4("transform", trans);
             glDrawElements(GL_TRIANGLES, sizeof(indices), GL_UNSIGNED_INT, nullptr);
 
             // draw the screen and process events
